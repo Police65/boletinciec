@@ -1,0 +1,5 @@
+{
+  "name": "CIEC-Noticias",
+  "description": "A digital newsletter for the Cámara de Industriales del Estado Carabobo (CIEC), providing automated news on economy, technology, manufacturing, and more, with an admin panel for content moderation.",
+  "requestFramePermissions": []
+}

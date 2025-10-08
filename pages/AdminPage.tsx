@@ -6,6 +6,7 @@ import Spinner from '../components/Spinner';
 import AdminArticleCard from '../components/AdminArticleCard';
 import Modal from '../components/Modal';
 import ProxiedImage from '../components/ProxiedImage';
+import { decodeHTMLEntities } from '../utils';
 
 const AdminPage: React.FC = () => {
     const [pendingArticles, setPendingArticles] = useState<Article[]>([]);
@@ -70,12 +71,12 @@ const AdminPage: React.FC = () => {
             </section>
             
             {previewArticle && (
-                <Modal title={previewArticle.title} onClose={() => setPreviewArticle(null)}>
+                <Modal title={decodeHTMLEntities(previewArticle.title)} onClose={() => setPreviewArticle(null)}>
                     <div className="prose prose-lg max-w-none text-[#111418]">
-                        <p className="text-lg text-[#637588] mb-4">{previewArticle.summary}</p>
+                        <p className="text-lg text-[#637588] mb-4">{decodeHTMLEntities(previewArticle.summary)}</p>
                          <ProxiedImage
                             src={previewArticle.image_url}
-                            alt={previewArticle.title}
+                            alt={decodeHTMLEntities(previewArticle.title)}
                             className="w-full h-auto max-h-[400px] object-cover rounded-lg my-4"
                         />
                         <div dangerouslySetInnerHTML={{ __html: previewArticle.body.replace(/\n/g, '<p>') }} />

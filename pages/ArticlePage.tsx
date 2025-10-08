@@ -5,6 +5,7 @@ import type { Article } from '../types';
 import { getArticleById } from '../services/newsService';
 import Spinner from '../components/Spinner';
 import ProxiedImage from '../components/ProxiedImage';
+import { decodeHTMLEntities } from '../utils';
 
 const ArticlePage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -47,9 +48,9 @@ const ArticlePage: React.FC = () => {
           </Link>
         )}
         <h1 className="text-3xl md:text-5xl font-bold text-[#111418] mt-2 mb-4 leading-tight font-newsreader">
-          {article.title}
+          {decodeHTMLEntities(article.title)}
         </h1>
-        <p className="text-lg text-[#637588] mb-4">{article.summary}</p>
+        <p className="text-lg text-[#637588] mb-4">{decodeHTMLEntities(article.summary)}</p>
         <div className="text-sm text-gray-400">
           Publicado el {new Date(article.created_at).toLocaleDateString('es-VE')}
         </div>
@@ -74,7 +75,7 @@ const ArticlePage: React.FC = () => {
       </header>
       <ProxiedImage
         src={article.image_url}
-        alt={article.title}
+        alt={decodeHTMLEntities(article.title)}
         className="w-full h-auto max-h-[500px] object-cover rounded-lg my-8"
       />
       <div

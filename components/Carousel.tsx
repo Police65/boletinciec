@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import type { Article } from '../types';
 import { Link } from 'react-router-dom';
 import ProxiedImage from './ProxiedImage';
+import { decodeHTMLEntities } from '../utils';
 
 interface CarouselProps {
   articles: Article[];
@@ -27,10 +28,10 @@ const Carousel: React.FC<CarouselProps> = ({ articles }) => {
         {articles.map((article, index) => (
           <div key={article.id} className="hidden duration-700 ease-in-out" data-carousel-item>
              <Link to={`/article/${article.id}`} className="absolute block w-full h-full top-0 left-0">
-                <ProxiedImage src={article.image_url} className="absolute block w-full h-full object-cover" alt={article.title} />
+                <ProxiedImage src={article.image_url} className="absolute block w-full h-full object-cover" alt={decodeHTMLEntities(article.title)} />
                 <div className="absolute inset-0 bg-black bg-opacity-50 flex flex-col justify-end p-8">
-                    <h2 className="text-white text-3xl font-bold">{article.title}</h2>
-                    <p className="text-gray-200 mt-2 hidden md:block">{article.summary}</p>
+                    <h2 className="text-white text-3xl font-bold">{decodeHTMLEntities(article.title)}</h2>
+                    <p className="text-gray-200 mt-2 hidden md:block">{decodeHTMLEntities(article.summary)}</p>
                 </div>
             </Link>
           </div>

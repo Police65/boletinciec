@@ -7,6 +7,7 @@ import { generateWeeklySummary } from '../services/geminiService';
 import type { Article } from '../types';
 import Spinner from '../components/Spinner';
 import ProxiedImage from '../components/ProxiedImage';
+import { decodeHTMLEntities } from '../utils';
 
 const NewsletterPage: React.FC = () => {
     const [weeklyArticles, setWeeklyArticles] = useState<Article[]>([]);
@@ -59,19 +60,23 @@ const NewsletterPage: React.FC = () => {
             const pdfHeight = pdf.internal.pageSize.getHeight();
             const canvasWidth = canvas.width;
             const canvasHeight = canvas.height;
-            const ratio = canvasWidth / canvasHeight;
-            const imgHeight = pdfWidth / ratio;
 
-            let heightLeft = canvasHeight * pdfWidth / canvasWidth;
+            // Calculate the total height of the canvas image when scaled to fit the PDF's width
+            const totalImageHeightInPdf = (canvasHeight * pdfWidth) / canvasWidth;
+
+            let heightLeft = totalImageHeightInPdf;
             let position = 0;
 
-            pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, heightLeft);
+            // Add the first page (or the entire image if it fits)
+            pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, totalImageHeightInPdf);
             heightLeft -= pdfHeight;
 
+            // Loop to add subsequent pages if the content is taller than one page
             while (heightLeft > 0) {
-                position -= pdfHeight;
+                position -= pdfHeight; // Move the "crop" position up by one page height
                 pdf.addPage();
-                pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight * ratio);
+                // Add the same tall image, but the new `position` will cause jsPDF to render the next part of it
+                pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, totalImageHeightInPdf);
                 heightLeft -= pdfHeight;
             }
 
@@ -182,13 +187,13 @@ const NewsletterPage: React.FC = () => {
                                             {(articles as Article[]).map(article => (
                                                 <div key={article.id} className="flex flex-col sm:flex-row gap-4 pb-6 border-b border-gray-200 last:border-b-0">
                                                     <div className="sm:w-1/4">
-                                                        <ProxiedImage src={article.image_url} alt={article.title} className="w-full h-auto object-cover rounded-md aspect-video" />
+                                                        <ProxiedImage src={article.image_url} alt={decodeHTMLEntities(article.title)} className="w-full h-auto object-cover rounded-md aspect-video" />
                                                     </div>
                                                     <div className="sm:w-3/4">
                                                         <Link to={`/article/${article.id}`} target="_blank" className="hover:text-blue-600">
-                                                            <h4 className="text-lg font-bold">{article.title}</h4>
+                                                            <h4 className="text-lg font-bold">{decodeHTMLEntities(article.title)}</h4>
                                                         </Link>
-                                                        <p className="text-sm text-gray-600 mt-1">{article.summary}</p>
+                                                        <p className="text-sm text-gray-600 mt-1">{decodeHTMLEntities(article.summary)}</p>
                                                     </div>
                                                 </div>
                                             ))}

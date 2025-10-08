@@ -8,6 +8,7 @@ import type { Article } from '../types';
 import Spinner from '../components/Spinner';
 import ProxiedImage from '../components/ProxiedImage';
 import { decodeHTMLEntities } from '../utils';
+import { CIEC_LOGO_URL } from '../assets';
 
 const NewsletterPage: React.FC = () => {
     const [weeklyArticles, setWeeklyArticles] = useState<Article[]>([]);
@@ -152,10 +153,8 @@ const NewsletterPage: React.FC = () => {
                         <div ref={pdfContentRef} className="bg-white p-8 border rounded-lg shadow-sm">
                              {/* Header for PDF */}
                             <div className="flex items-center justify-between border-b-2 border-gray-800 pb-4 mb-6">
-                                <div className="flex items-center gap-4 text-[#111418]">
-                                    <div className="size-8 text-blue-600">
-                                        <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><g clipPath="url(#clip0_6_319)"><path d="M8.57829 8.57829C5.52816 11.6284 3.451 15.5145 2.60947 19.7452C1.76794 23.9758 2.19984 28.361 3.85056 32.3462C5.50128 36.3314 8.29667 39.7376 11.8832 42.134C15.4698 44.5305 19.6865 45.8096 24 45.8096C28.3135 45.8096 32.5302 44.5305 36.1168 42.134C39.7033 39.7375 42.4987 36.3314 44.1494 32.3462C45.8002 28.361 46.2321 23.9758 45.3905 19.7452C44.549 15.5145 42.4718 11.6284 39.4217 8.57829L24 24L8.57829 8.57829Z" fill="currentColor"></path></g><defs><clipPath id="clip0_6_319"><rect width="48" height="48" fill="white"></rect></clipPath></defs></svg>
-                                    </div>
+                                <div className="flex items-center gap-3 text-[#111418]">
+                                    <ProxiedImage src={CIEC_LOGO_URL} alt="CIEC Logo" className="h-12 w-auto" />
                                     <h2 className="text-[#111418] text-2xl font-bold leading-tight tracking-[-0.015em] font-newsreader">CIEC Noticias</h2>
                                 </div>
                                 <div className="text-right">

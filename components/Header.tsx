@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import type { Category } from '../types';
 import { getCategories } from '../services/newsService';
+import { CIEC_LOGO_URL } from '../assets';
 
 const Header: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -71,20 +72,8 @@ const Header: React.FC = () => {
   return (
     <header className="flex items-center justify-between whitespace-nowrap border-b border-solid border-b-[#f0f2f4] px-10 py-3 sticky top-0 bg-white z-50">
       <div className="flex items-center gap-8 min-w-0">
-        <Link to="/" className="flex items-center gap-4 text-[#111418] flex-shrink-0">
-          <div className="size-6 text-blue-600">
-            <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <g clipPath="url(#clip0_6_319)">
-                <path
-                  d="M8.57829 8.57829C5.52816 11.6284 3.451 15.5145 2.60947 19.7452C1.76794 23.9758 2.19984 28.361 3.85056 32.3462C5.50128 36.3314 8.29667 39.7376 11.8832 42.134C15.4698 44.5305 19.6865 45.8096 24 45.8096C28.3135 45.8096 32.5302 44.5305 36.1168 42.134C39.7033 39.7375 42.4987 36.3314 44.1494 32.3462C45.8002 28.361 46.2321 23.9758 45.3905 19.7452C44.549 15.5145 42.4718 11.6284 39.4217 8.57829L24 24L8.57829 8.57829Z"
-                  fill="currentColor"
-                ></path>
-              </g>
-              <defs>
-                <clipPath id="clip0_6_319"><rect width="48" height="48" fill="white"></rect></clipPath>
-              </defs>
-            </svg>
-          </div>
+        <Link to="/" className="flex items-center gap-3 text-[#111418] flex-shrink-0">
+          <img src={CIEC_LOGO_URL} alt="CIEC Logo" className="h-10 w-auto" />
           <h2 className="text-[#111418] text-lg font-bold leading-tight tracking-[-0.015em] font-newsreader">CIEC Noticias</h2>
         </Link>
         <nav className="hidden md:flex items-center gap-9 min-w-0">

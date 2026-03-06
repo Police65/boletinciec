@@ -22,3 +22,18 @@ export interface Category {
   id: number;
   name: string;
 }
+
+export interface FinancialIndicator {
+  id: string;
+  price: number;
+  variation: number;
+  updated_at: string;
+}
+export interface DailyIndicator {
+  id: number;
+  created_at: string;
+  date: string;
+  name: string;
+  value: number;
+  type: string;
+}

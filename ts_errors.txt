@@ -1,0 +1,5 @@
+services/newsService.ts(119,30): error TS2339: Property 'id' does not exist on type '{ id: any; name: any; }[]'.
+services/newsService.ts(119,72): error TS2339: Property 'id' does not exist on type '{ id: any; name: any; }[]'.
+services/newsService.ts(120,34): error TS2339: Property 'id' does not exist on type '{ id: any; name: any; }[]'.
+services/newsService.ts(120,53): error TS2339: Property 'id' does not exist on type '{ id: any; name: any; }[]'.
+services/newsService.ts(120,72): error TS2339: Property 'name' does not exist on type '{ id: any; name: any; }[]'.

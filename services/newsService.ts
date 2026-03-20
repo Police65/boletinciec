@@ -8,14 +8,25 @@ export const getDailyIndicators = async (): Promise<DailyIndicator[]> => {
     .from('daily_indicators')
     .select('*')
     .order('date', { ascending: false })
-    .limit(10);
+    .limit(50);
 
   if (error) {
     console.error('Error fetching daily indicators:', error);
     return [];
   }
 
-  return data as DailyIndicator[];
+  const latestIndicatorsMap = new Map<string, DailyIndicator>();
+
+  if (data && data.length > 0) {
+    data.forEach(indicator => {
+      const key = indicator.name.toLowerCase();
+      if (!latestIndicatorsMap.has(key)) {
+        latestIndicatorsMap.set(key, indicator);
+      }
+    });
+  }
+
+  return Array.from(latestIndicatorsMap.values());
 };
 
 export const getFinancialIndicators = async (): Promise<FinancialIndicator[]> => {
@@ -115,9 +126,13 @@ export const getCategories = async (): Promise<Category[]> => {
 
   const categoriesMap = new Map<number, Category>();
   for (const item of data) {
-    const category = item.category;
-    if (category && category.id != null && !categoriesMap.has(category.id)) {
-      categoriesMap.set(category.id, { id: category.id, name: category.name });
+    const category = item.category as any;
+    if (category) {
+      // Handle case where category might be returned as an array or object
+      const catObj = Array.isArray(category) ? category[0] : category;
+      if (catObj && catObj.id != null && !categoriesMap.has(catObj.id)) {
+        categoriesMap.set(catObj.id, { id: catObj.id, name: catObj.name });
+      }
     }
   }
 
@@ -174,6 +189,24 @@ export const getWeeklyApprovedArticles = async (): Promise<Article[]> => {
 
   if (error) {
     console.error('Error fetching weekly approved articles:', error);
+    throw error;
+  }
+
+  return data as Article[];
+};
+
+export const getApprovedArticlesByDateRange = async (startDate: string, endDate: string): Promise<Article[]> => {
+  const { data, error } = await supabase
+    .from('articles')
+    .select('*, category:categories(id, name)')
+    .eq('status', ArticleStatus.Approved)
+    .gte('created_at', startDate)
+    .lte('created_at', endDate)
+    .order('category_id', { ascending: true })
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Error fetching approved articles by date range:', error);
     throw error;
   }
 

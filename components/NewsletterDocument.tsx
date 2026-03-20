@@ -1,261 +1,258 @@
-
 import React from 'react';
-import { Document, Page, Text, View, StyleSheet, Image, Link, Font, Svg, Path } from '@react-pdf/renderer';
+import { Document, Page, Text, View, StyleSheet, Image, Link } from '@react-pdf/renderer';
 import { Article, FinancialIndicator, DailyIndicator } from '../types';
-import { CIEC_LOGO_URL } from '../assets';
-// We assume getProxiedImageUrl handles the proxy logic, but for react-pdf we often need base64 or a direct public URL.
-// If the image is protected or needs cookies, it might fail. 
-// Assuming standard public images or the proxy works for fetch.
 import { getProxiedImageUrl } from '../services/newsService';
 import { decodeHTMLEntities } from '../utils';
 
-// Register a standard font if needed, otherwise use Helvetica/Times
-// Font.register({ family: 'Noto Sans', src: '...' }); 
+const HEROLOGO_URL = "https://zurlbunvnwfkxmbzlfxt.supabase.co/storage/v1/object/public/images/LogotipoWHITE@1.5x.png";
+const HEROCOVER_URL = "https://zurlbunvnwfkxmbzlfxt.supabase.co/storage/v1/object/public/images/edificio.jpeg";
 
 const styles = StyleSheet.create({
-    bcvContainer: {
-        flexDirection: 'row',
-        justifyContent: 'center',
-        marginBottom: 20,
-        padding: 12,
-        backgroundColor: '#eff6ff', // Light blue background
-        borderRadius: 10,
-        borderWidth: 1.5,
-        borderColor: '#bfdbfe', // Softer blue border
-    },
-    bcvItem: {
-        flexDirection: 'column',
-        alignItems: 'center',
-        paddingHorizontal: 20,
-    },
-    bcvLabel: {
-        fontSize: 8,
-        fontWeight: 'bold',
-        color: '#1e40af', // Darker blue for contrast
-        textTransform: 'uppercase',
-        letterSpacing: 1.2,
-        marginBottom: 4,
-    },
-    bcvValue: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#1e293b',
-    },
-    bcvUnit: {
-        fontSize: 9,
-        fontWeight: 'bold',
-        color: '#64748b',
-        marginLeft: 3,
-    },
     page: {
-        padding: 30,
-        backgroundColor: 'white',
+        backgroundColor: '#ffffff',
         fontFamily: 'Helvetica',
-        fontSize: 10,
-        color: '#333'
     },
-    header: {
-        marginBottom: 20,
-        alignItems: 'center'
+    heroContainer: {
+        flexDirection: 'row',
+        height: 600,
+        width: '100%',
+    },
+    heroLeft: {
+        width: '50%',
+        backgroundColor: '#0a3264',
+        padding: 40,
+        color: '#ffffff',
+        flexDirection: 'column',
+        justifyContent: 'flex-start',
+    },
+    heroRight: {
+        width: '50%',
+        height: 600,
+    },
+    heroRightImage: {
+        width: '100%',
+        height: '100%',
+        objectFit: 'cover',
     },
     logo: {
-        height: 60,
-        marginBottom: 10,
-        objectFit: 'contain'
+        height: 80,
+        width: 220,
+        objectFit: 'contain',
+        marginBottom: 40,
     },
-    title: {
-        color: '#0a3264',
-        fontSize: 24,
+    titleWhite: {
+        fontSize: 54,
         fontWeight: 'bold',
-        marginBottom: 5,
+        fontFamily: 'Helvetica-Bold',
+        color: '#ffffff',
+        letterSpacing: 1,
+        marginBottom: -5,
+    },
+    titleBlue: {
+        fontSize: 54,
+        fontWeight: 'bold',
+        fontFamily: 'Helvetica-Bold',
+        color: '#4db8ff',
+        letterSpacing: 1,
+        marginBottom: 15,
+    },
+    dateLine: {
+        fontSize: 14,
+        fontWeight: 'bold',
+        fontFamily: 'Helvetica-Bold',
+        color: '#94a3b8',
         textTransform: 'uppercase',
-        textAlign: 'center'
+        letterSpacing: 2,
+        marginBottom: 40,
     },
-    subtitle: {
-        fontSize: 12,
-        fontStyle: 'italic',
-        color: '#555',
-        marginBottom: 15, // Increased from 10
-        textAlign: 'center'
-    },
-    editionBox: {
-        borderTopWidth: 2,
-        borderTopColor: '#0a3264',
-        borderBottomWidth: 2,
-        borderBottomColor: '#0a3264',
-        paddingVertical: 5,
-        width: '80%',
-        textAlign: 'center',
-        fontSize: 12,
-        fontWeight: 'bold'
-    },
-    indicatorsContainer: {
-        backgroundColor: '#0a3264',
-        padding: 10,
-        marginBottom: 20,
+    indicatorsStrip: {
         flexDirection: 'row',
+        backgroundColor: '#f8fafc',
+        paddingVertical: 25,
+        paddingHorizontal: 40,
+        borderBottomWidth: 3,
+        borderBottomColor: '#cbd5e1',
+        justifyContent: 'center',
         flexWrap: 'wrap',
-        justifyContent: 'space-around',
-        color: 'white'
     },
     indicatorItem: {
+        flexDirection: 'column',
         alignItems: 'center',
-        minWidth: 80,
-        marginBottom: 5
+        paddingHorizontal: 25,
+        marginBottom: 10,
     },
     indicatorLabel: {
-        fontSize: 8,
+        fontSize: 10,
         fontWeight: 'bold',
-        marginBottom: 2
+        fontFamily: 'Helvetica-Bold',
+        color: '#0ea5e9',
+        textTransform: 'uppercase',
+        letterSpacing: 1,
+        marginBottom: 6,
     },
     indicatorValue: {
-        fontSize: 14,
+        fontSize: 18,
         fontWeight: 'bold',
-        marginBottom: 1
+        fontFamily: 'Helvetica-Bold',
+        color: '#1e293b',
     },
-    indicatorSubItem: {
-        fontSize: 7,
-        color: 'rgba(255,255,255,0.8)'
-    },
-    summaryContainer: {
-        backgroundColor: 'white',
-        borderWidth: 1,
-        borderColor: '#ccc',
-        borderLeftWidth: 5,
-        borderLeftColor: '#285aa0',
-        padding: 15,
-        marginBottom: 20
-    },
-    summaryTitle: {
-        color: '#285aa0',
-        fontSize: 16,
-        borderBottomWidth: 1,
-        borderBottomColor: '#eee',
-        paddingBottom: 5,
-        marginBottom: 10,
-        fontWeight: 'bold'
-    },
-    summaryText: {
-        fontSize: 10,
-        textAlign: 'justify',
-        lineHeight: 1.5
-    },
-    sectionTitle: {
-        color: '#0a3264',
-        fontSize: 14,
-        borderBottomWidth: 2,
-        borderBottomColor: '#285aa0',
-        paddingBottom: 3,
-        marginBottom: 10,
+    indicatorSub: {
+        fontSize: 8,
+        color: '#64748b',
+        marginTop: 4,
         textTransform: 'uppercase',
-        fontWeight: 'bold'
     },
+    bodyContainer: {
+        padding: 40,
+    },
+    categorySection: {
+        marginBottom: 50,
+    },
+    categoryTitleBase: {
+        marginBottom: 25,
+    },
+    categoryTitleText: {
+        fontSize: 24,
+        fontWeight: 'bold',
+        fontFamily: 'Helvetica-Bold',
+        color: '#0a3264',
+        textTransform: 'uppercase',
+        letterSpacing: 1,
+        borderBottomWidth: 4,
+        borderBottomColor: '#0ea5e9',
+        paddingBottom: 4,
+        alignSelf: 'center', // use flex-start if we want it aligned left tight, let's use flex-start to snap to text size
+    },
+
+    // Featured Article (Newspaper Lead Story)
+    featuredCard: {
+        flexDirection: 'row',
+        width: '100%',
+        marginBottom: 30,
+        paddingBottom: 30,
+        borderBottomWidth: 1,
+        borderBottomColor: '#e2e8f0',
+    },
+    featuredImage: {
+        width: '55%',
+        height: 250,
+        objectFit: 'cover',
+        marginRight: 20,
+        borderRadius: 2,
+    },
+    featuredContent: {
+        width: '45%',
+        flexDirection: 'column',
+    },
+    featuredTitleBox: {
+        marginBottom: 10,
+    },
+    featuredTitle: {
+        fontSize: 24,
+        fontWeight: 'bold',
+        fontFamily: 'Helvetica-Bold',
+        color: '#0f172a',
+        lineHeight: 1.1,
+    },
+    featuredSummary: {
+        fontSize: 11,
+        color: '#334155',
+        textAlign: 'justify',
+        lineHeight: 1.6,
+        marginBottom: 20,
+    },
+
+    // Secondary Articles Grid Layout
     articlesGrid: {
         flexDirection: 'row',
         flexWrap: 'wrap',
-        justifyContent: 'space-between'
+        justifyContent: 'space-between',
     },
     articleCard: {
-        width: '48%',
-        backgroundColor: 'white',
-        borderWidth: 1,
-        borderColor: '#285aa0',
-        borderRadius: 4,
-        marginBottom: 15,
-        overflow: 'hidden'
-    },
-    articleTitleBox: {
-        backgroundColor: 'transparent',
+        width: '47%', // 2 columns
+        marginBottom: 25,
+        paddingBottom: 25,
         borderBottomWidth: 1,
-        borderBottomColor: '#f0f8ff',
-        padding: 8
-    },
-    articleTitle: {
-        color: '#0a3264',
-        fontSize: 11,
-        fontWeight: 'bold'
-    },
-    articleContent: {
-        padding: 8
+        borderBottomColor: '#e2e8f0',
+        display: 'flex',
+        flexDirection: 'column',
     },
     articleImage: {
         width: '100%',
-        height: 100,
+        height: 180,
         objectFit: 'cover',
-        marginBottom: 8,
-        borderRadius: 2
+        marginBottom: 15,
+        borderRadius: 2,
+    },
+    articleTitleBox: {
+        marginBottom: 10,
+    },
+    articleTitle: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        fontFamily: 'Helvetica-Bold',
+        color: '#0f172a',
+        lineHeight: 1.3,
     },
     articleSummary: {
-        fontSize: 9,
+        fontSize: 11,
+        color: '#475569',
         textAlign: 'justify',
-        color: '#333',
-        lineHeight: 1.3
+        lineHeight: 1.5,
+        marginBottom: 15,
     },
-    articleSourceContainer: {
-        flexDirection: 'row',
-        justifyContent: 'flex-end',
-        alignItems: 'center',
-        marginTop: 5
-    },
-    sourceIcon: {
-        width: 10,
-        height: 10,
-        marginRight: 4
-    },
-    sourceLink: {
+    readMoreLink: {
         fontSize: 10,
-        color: '#285aa0', // blue
-        textDecoration: 'underline'
+        color: '#0ea5e9',
+        fontWeight: 'bold',
+        fontFamily: 'Helvetica-Bold',
+        textDecoration: 'none',
+        marginTop: 'auto',
+        textTransform: 'uppercase',
+        letterSpacing: 0.5,
     },
-    footer: {
+
+    footerContainer: {
+        backgroundColor: '#0a3264',
+        padding: 30,
+        alignItems: 'center',
         marginTop: 20,
-        borderTopWidth: 1,
-        borderTopColor: '#eee',
-        paddingTop: 10
     },
     disclaimerBox: {
-        borderWidth: 1,
-        borderColor: '#ddd',
-        borderRadius: 3,
-        padding: 10,
-        backgroundColor: '#fafafa',
-        marginBottom: 5
-    },
-    disclaimerTitle: {
-        color: '#0a3264',
-        fontSize: 10,
-        fontWeight: 'bold',
-        marginBottom: 3
+        backgroundColor: '#1e3a8a',
+        padding: 15,
+        borderRadius: 4,
+        marginBottom: 15,
+        width: '80%',
     },
     disclaimerText: {
-        fontSize: 8,
-        color: '#666',
-        fontStyle: 'italic'
-    },
-    copyright: {
+        color: '#94a3b8',
+        fontSize: 9,
         textAlign: 'center',
-        fontSize: 8,
-        color: '#888',
-        marginTop: 5
+        lineHeight: 1.4,
+    },
+    footerText: {
+        color: '#ffffff',
+        fontSize: 10,
+        letterSpacing: 1,
     }
 });
 
 interface NewsletterDocumentProps {
     articles: Article[];
-    summary: string;
     indicators: FinancialIndicator[];
     dailyIndicators: DailyIndicator[];
     dateRange: string;
-    editionNumber?: number;
+    featuredArticles?: Record<string, string>;
 }
 
-// Helpers
 const formatPrice = (price: number, id: string) => {
     if (id.toLowerCase().includes('bcv') || id.toLowerCase().includes('paralelo')) return `${price.toFixed(2)} Bs.`;
-    return `$ ${price.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} `;
+    return `$ ${price.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 };
 
-const getIndicatorLabel = (id: string) => {
+const getIndicatorLabel = (id: string, name?: string) => {
+    if (name) return name.toUpperCase();
     const map: Record<string, string> = {
         'bcv': 'USD BCV',
         'paralelo': 'USD BINANCE',
@@ -267,7 +264,10 @@ const getIndicatorLabel = (id: string) => {
     return map[id.toLowerCase()] || id.toUpperCase().replace(/_/g, ' ');
 };
 
-const getIndicatorSubLabel = (id: string) => {
+const getIndicatorSubLabel = (id: string, type?: string) => {
+    if (type?.toLowerCase() === 'currency' || type?.toLowerCase() === 'moneda') return 'Mercado Cambiario';
+    if (type?.toLowerCase() === 'commodity') return 'Materia Prima';
+
     const map: Record<string, string> = {
         'bcv': 'Ref. Oficial',
         'paralelo': 'Promedio Mercado',
@@ -279,31 +279,13 @@ const getIndicatorSubLabel = (id: string) => {
     return map[id.toLowerCase()] || 'Indicador';
 };
 
-// Render bold text helper
-const ParsedText = ({ text, style }: { text: string, style?: any }) => {
-    if (!text) return null;
-    const parts = text.split(/(\*\*.*?\*\*)/g);
-    return (
-        <Text style={style}>
-            {parts.map((part, index) => {
-                if (part.startsWith('**') && part.endsWith('**')) {
-                    return <Text key={index} style={{ fontWeight: 'bold' }}>{part.slice(2, -2)}</Text>;
-                }
-                return <Text key={index}>{part}</Text>;
-            })}
-        </Text>
-    );
-};
-
 const NewsletterDocument: React.FC<NewsletterDocumentProps> = ({
     articles,
-    summary,
     indicators,
     dailyIndicators,
     dateRange,
-    editionNumber = 452
+    featuredArticles
 }) => {
-    // Group articles
     const articlesByCategory = articles.reduce((acc, article) => {
         const categoryName = article.category?.name || 'Sin Categoría';
         if (!acc[categoryName]) {
@@ -313,153 +295,167 @@ const NewsletterDocument: React.FC<NewsletterDocumentProps> = ({
         return acc;
     }, {} as Record<string, Article[]>);
 
-    const bcvDolar = dailyIndicators.find(i =>
-        (i.type?.toLowerCase() === 'currency' || i.type?.toLowerCase() === 'moneda') &&
-        i.name?.toLowerCase().includes('dolar') && i.name?.toLowerCase().includes('bcv')
-    ) || indicators.find(i => i.id?.toLowerCase().includes('dolar') && i.id?.toLowerCase().includes('bcv'));
+    const mergedIndicators = [
+        ...dailyIndicators.map(di => ({
+            id: di.name.toLowerCase(),
+            name: di.name,
+            price: di.value,
+            type: di.type
+        })),
+        ...indicators.map(i => ({
+            id: i.id.toLowerCase(),
+            name: '',
+            price: i.price,
+            type: ''
+        }))
+    ];
 
-    const bcvEuro = dailyIndicators.find(i =>
-        (i.type?.toLowerCase() === 'currency' || i.type?.toLowerCase() === 'moneda') &&
-        i.name?.toLowerCase().includes('euro') && i.name?.toLowerCase().includes('bcv')
-    ) || indicators.find(i => i.id?.toLowerCase().includes('euro') && i.id?.toLowerCase().includes('bcv'));
+    const uniqueIndicators = Array.from(new Map(mergedIndicators.map(item => [item.id, item])).values() as Iterable<any>).slice(0, 6);
 
-    const getPriceValue = (ind: any) => {
-        if (!ind) return '0.00';
-        const val = ind.value !== undefined ? ind.value : ind.price;
-        return typeof val === 'string' ? parseFloat(val).toFixed(2) : val.toFixed(2);
+    const calculateDynamicHeight = () => {
+        let height = 600 + 80 + 170; // hero + body container padding + footer
+        if (uniqueIndicators.length > 0) height += 105; // indicators strip
+
+        Object.entries(articlesByCategory).forEach(([categoryName, categoryArticles]) => {
+            const categoryContent = categoryArticles as Article[];
+            if (categoryContent.length > 0) {
+                height += 60; // category title and margins
+                height += 320; // featured article height and margins
+
+                const remaining = categoryContent.length - 1;
+                if (remaining > 0) {
+                    const rows = Math.ceil(remaining / 2);
+                    height += rows * 390; // highly accurate matched height per row
+                }
+                height += 50; // margin bottom for the category section
+            }
+        });
+
+        return Math.max(height, 792); // return at least standard letter height
     };
+
+    const pageHeight = calculateDynamicHeight();
 
     return (
         <Document>
-            <Page size="A4" style={styles.page} wrap>
-                {/* Header */}
-                <View style={styles.header} fixed>
-                    <Image src={CIEC_LOGO_URL} style={styles.logo} />
-                    <Text style={styles.title}>CIEC AL DÍA</Text>
-                    <Text style={styles.subtitle}>Informe Semanal de Coyuntura Económica e Industrial</Text>
-                    <View style={styles.editionBox}>
-                        <Text>{dateRange} | Edición Nro. {editionNumber}</Text>
+            <Page size={[612, pageHeight]} style={{ ...styles.page, backgroundColor: '#0a3264' }}>
+                <View style={{ backgroundColor: '#ffffff' }}>
+                    {/* Hero Section */}
+                    <View style={styles.heroContainer}>
+                        <View style={styles.heroLeft}>
+                            <Image src={HEROLOGO_URL} style={styles.logo} />
+                            <Text style={styles.titleWhite}>CIEC</Text>
+                            <Text style={styles.titleBlue}>AL DÍA</Text>
+                            <Text style={styles.dateLine}>{dateRange}</Text>
+                        </View>
+                        <View style={styles.heroRight}>
+                            <Image src={HEROCOVER_URL} style={styles.heroRightImage} />
+                        </View>
                     </View>
-                </View>
 
-                {/* BCV Tasa Oficial (Light blue container) */}
-                {(bcvDolar || bcvEuro) && (
-                    <View style={styles.bcvContainer} wrap={false}>
-                        {bcvDolar && (
-                            <View style={[styles.bcvItem, { borderRightWidth: bcvEuro ? 1 : 0, borderRightColor: '#bfdbfe' }]}>
-                                <Text style={styles.bcvLabel}>Dólar BCV</Text>
-                                <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
-                                    <Text style={styles.bcvValue}>
-                                        {getPriceValue(bcvDolar)}
-                                    </Text>
-                                    <Text style={styles.bcvUnit}>Bs.S</Text>
+                    {/* Financial Indicators Strip */}
+                    {uniqueIndicators.length > 0 && (
+                        <View style={styles.indicatorsStrip}>
+                            {uniqueIndicators.map((ind, idx) => (
+                                <View key={idx} style={styles.indicatorItem}>
+                                    <Text style={styles.indicatorLabel}>{getIndicatorLabel(ind.id, ind.name)}</Text>
+                                    <Text style={styles.indicatorValue}>{formatPrice(ind.price, ind.id)}</Text>
+                                    <Text style={styles.indicatorSub}>{getIndicatorSubLabel(ind.id, ind.type)}</Text>
                                 </View>
-                                <Text style={{ fontSize: 7, color: '#3b82f6', marginTop: 4, fontWeight: 'bold' }}>
-                                    Ref. Oficial
-                                </Text>
-                            </View>
-                        )}
-                        {bcvEuro && (
-                            <View style={[styles.bcvItem, { paddingLeft: bcvDolar ? 20 : 0 }]}>
-                                <Text style={styles.bcvLabel}>Euro BCV</Text>
-                                <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
-                                    <Text style={styles.bcvValue}>
-                                        {getPriceValue(bcvEuro)}
-                                    </Text>
-                                    <Text style={styles.bcvUnit}>Bs.S</Text>
-                                </View>
-                                <Text style={{ fontSize: 7, color: '#3b82f6', marginTop: 4, fontWeight: 'bold' }}>
-                                    Ref. Oficial
-                                </Text>
-                            </View>
-                        )}
-                    </View>
-                )}
+                            ))}
+                        </View>
+                    )}
 
-                {/* Indicators */}
-                {indicators.length > 0 && (
-                    <View style={styles.indicatorsContainer} wrap={false}>
-                        {indicators.map((ind) => (
-                            <View key={ind.id} style={styles.indicatorItem}>
-                                <Text style={styles.indicatorLabel}>{getIndicatorLabel(ind.id)}</Text>
-                                <Text style={styles.indicatorValue}>{formatPrice(ind.price, ind.id)}</Text>
-                                <Text style={styles.indicatorSubItem}>{getIndicatorSubLabel(ind.id)}</Text>
-                            </View>
-                        ))}
-                    </View>
-                )}
+                    {/* Body Content */}
+                    <View style={styles.bodyContainer}>
+                        {Object.entries(articlesByCategory).map(([categoryName, categoryArticles]) => {
+                            const featuredId = featuredArticles ? featuredArticles[categoryName] : undefined;
+                            let featuredArticle = (categoryArticles as Article[]).find(a => a.id === featuredId);
+                            let remainingArticles = (categoryArticles as Article[]).filter(a => a.id !== featuredId);
 
-                {/* Summary */}
-                {summary && (
-                    <View style={styles.summaryContainer} wrap={false}>
-                        <Text style={styles.summaryTitle}>Resumen Ejecutivo</Text>
-                        <ParsedText text={summary} style={styles.summaryText} />
-                    </View>
-                )}
+                            if (!featuredArticle && (categoryArticles as Article[]).length > 0) {
+                                featuredArticle = (categoryArticles as Article[])[0];
+                                remainingArticles = (categoryArticles as Article[]).slice(1);
+                            }
 
-                {/* Articles */}
-                {Object.entries(articlesByCategory).map(([categoryName, categoryArticles]) => (
-                    <View key={categoryName}>
-                        {/* wrap={false} here prevents the Title + Grid chunk from splitting weirdly if possible, 
-                            but for large categories we might WANT the grid to split, just not individual cards. 
-                            So maybe remove wrap={false} from section container, only on cards. 
-                        */}
-                        <Text style={styles.sectionTitle}>{categoryName}</Text>
-
-                        <View style={styles.articlesGrid}>
-                            {(categoryArticles as Article[]).map((article) => {
-                                const domain = article.source_url ? new URL(article.source_url).hostname.replace('www.', '') : 'CIEC';
-                                return (
-                                    <View key={article.id} style={styles.articleCard} wrap={false}>
-                                        <View style={styles.articleTitleBox}>
-                                            <Text style={styles.articleTitle}>
-                                                {decodeHTMLEntities(article.title)}
-                                            </Text>
+                            return (
+                                <View key={categoryName} style={styles.categorySection}>
+                                    <View style={styles.categoryTitleBase}>
+                                        <View style={{ alignSelf: 'flex-start' }}>
+                                            <Text style={styles.categoryTitleText}>{categoryName}</Text>
                                         </View>
-                                        <View style={styles.articleContent}>
-                                            {article.image_url && (
+                                    </View>
+
+                                    {/* Featured Lead Article */}
+                                    {featuredArticle && (
+                                        <View style={styles.featuredCard}>
+                                            {featuredArticle.image_url && (
                                                 <Image
-                                                    src={getProxiedImageUrl(article.image_url)}
-                                                    style={styles.articleImage}
+                                                    src={getProxiedImageUrl(featuredArticle.image_url)}
+                                                    style={styles.featuredImage}
                                                 />
                                             )}
-                                            <Text style={styles.articleSummary}>{decodeHTMLEntities(article.summary)}</Text>
-
-                                            <View style={styles.articleSourceContainer}>
-                                                <Text style={{ fontSize: 10, marginRight: 4, fontStyle: 'italic', color: '#666' }}>Fuente:</Text>
-                                                {/* Simple link icon */}
-                                                <Svg style={styles.sourceIcon} viewBox="0 0 24 24">
-                                                    <Path
-                                                        d="M18 13 v6 h-12 v-12 h6 M15 3 h6 v6 M10 14 L21 3"
-                                                        stroke="#285aa0"
-                                                        strokeWidth={2}
-                                                        strokeLinecap="round"
-                                                        strokeLinejoin="round"
-                                                    />
-                                                </Svg>
-                                                <Link src={article.source_url || '#'} style={styles.sourceLink}>
-                                                    {domain}
+                                            <View style={styles.featuredContent}>
+                                                <View style={styles.featuredTitleBox}>
+                                                    <Link src={featuredArticle.source_url || '#'} style={{ textDecoration: 'none' }}>
+                                                        <Text style={styles.featuredTitle}>
+                                                            {decodeHTMLEntities(featuredArticle.title)}
+                                                        </Text>
+                                                    </Link>
+                                                </View>
+                                                <Text style={styles.featuredSummary}>
+                                                    {decodeHTMLEntities(featuredArticle.summary)}
+                                                </Text>
+                                                <Link src={featuredArticle.source_url || '#'} style={styles.readMoreLink}>
+                                                    LEER ARTÍCULO COMPLETO »
                                                 </Link>
                                             </View>
                                         </View>
-                                    </View>
-                                );
-                            })}
-                        </View>
-                    </View>
-                ))}
+                                    )}
 
-                {/* Footer - render at bottom of last page or flow naturally */}
-                <View style={styles.footer} wrap={false}>
+                                    {/* Secondary Articles Grid */}
+                                    {remainingArticles.length > 0 && (
+                                        <View style={styles.articlesGrid}>
+                                            {remainingArticles.map((article) => (
+                                                <View key={article.id} style={styles.articleCard}>
+                                                    {article.image_url && (
+                                                        <Image
+                                                            src={getProxiedImageUrl(article.image_url)}
+                                                            style={styles.articleImage}
+                                                        />
+                                                    )}
+                                                    <View style={styles.articleTitleBox}>
+                                                        <Link src={article.source_url || '#'} style={{ textDecoration: 'none' }}>
+                                                            <Text style={styles.articleTitle}>
+                                                                {decodeHTMLEntities(article.title)}
+                                                            </Text>
+                                                        </Link>
+                                                    </View>
+                                                    <Text style={styles.articleSummary}>{decodeHTMLEntities(article.summary)}</Text>
+
+                                                    <Link src={article.source_url || '#'} style={styles.readMoreLink}>
+                                                        LEER ARTÍCULO COMPLETO »
+                                                    </Link>
+                                                </View>
+                                            ))}
+                                        </View>
+                                    )}
+                                </View>
+                            );
+                        })}
+                    </View>
+                </View>
+
+                {/* Footer */}
+                <View style={styles.footerContainer}>
                     <View style={styles.disclaimerBox}>
-                        <Text style={styles.disclaimerTitle}>Nota de Cierre</Text>
                         <Text style={styles.disclaimerText}>
                             El diferencial cambiario y los indicadores presentados son referenciales al momento de cierre de esta edición.
                             Se sugiere a la industria consultar fuentes oficiales antes de la toma de decisiones críticas.
                         </Text>
                     </View>
-                    <Text style={styles.copyright}>
-                        Boletín generado automáticamente por CIEC App. © {new Date().getFullYear()} Cámara de Industriales.
+                    <Text style={styles.footerText}>
+                        Boletín generado automáticamente por CIEC App. © {new Date().getFullYear()} Cámara de Industriales del Estado Carabobo.
                     </Text>
                 </View>
             </Page>

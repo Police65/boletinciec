@@ -1,0 +1,1 @@
+components/NewsletterDocument.tsx(351,68): error TS2339: Property 'slice' does not exist on type 'unknown'.

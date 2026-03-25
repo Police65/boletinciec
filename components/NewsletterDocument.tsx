@@ -1,8 +1,9 @@
 import React from 'react';
-import { Document, Page, Text, View, StyleSheet, Image, Link } from '@react-pdf/renderer';
+import { Document, Page, Text, View, StyleSheet, Image, Link, Svg, Path } from '@react-pdf/renderer';
 import { Article, FinancialIndicator, DailyIndicator } from '../types';
 import { getProxiedImageUrl } from '../services/newsService';
 import { decodeHTMLEntities } from '../utils';
+import '../utils/hyphenation';
 
 const HEROLOGO_URL = "https://zurlbunvnwfkxmbzlfxt.supabase.co/storage/v1/object/public/images/LogotipoWHITE@1.5x.png";
 const HEROCOVER_URL = "https://zurlbunvnwfkxmbzlfxt.supabase.co/storage/v1/object/public/images/edificio.jpeg";
@@ -63,7 +64,21 @@ const styles = StyleSheet.create({
         color: '#94a3b8',
         textTransform: 'uppercase',
         letterSpacing: 2,
-        marginBottom: 40,
+        marginBottom: 20,
+    },
+    socialContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    socialIconBlock: {
+        marginRight: 15,
+        backgroundColor: '#1e3a8a',
+        padding: 8,
+        borderRadius: 6,
+    },
+    socialIcon: {
+        width: 26,
+        height: 26,
     },
     indicatorsStrip: {
         flexDirection: 'row',
@@ -213,28 +228,29 @@ const styles = StyleSheet.create({
     },
 
     footerContainer: {
-        backgroundColor: '#0a3264',
         padding: 30,
         alignItems: 'center',
-        marginTop: 20,
+        marginTop: 10,
+        backgroundColor: '#ffffff',
     },
     disclaimerBox: {
-        backgroundColor: '#1e3a8a',
-        padding: 15,
-        borderRadius: 4,
-        marginBottom: 15,
-        width: '80%',
+        backgroundColor: '#0a3264',
+        padding: 20,
+        borderRadius: 6,
+        width: '95%',
+        alignItems: 'center',
     },
     disclaimerText: {
-        color: '#94a3b8',
+        color: '#cbd5e1',
         fontSize: 9,
         textAlign: 'center',
-        lineHeight: 1.4,
+        lineHeight: 1.5,
+        marginBottom: 8,
     },
     footerText: {
         color: '#ffffff',
         fontSize: 10,
-        letterSpacing: 1,
+        textAlign: 'center',
     }
 });
 
@@ -320,25 +336,48 @@ const NewsletterDocument: React.FC<NewsletterDocumentProps> = ({
             const categoryContent = categoryArticles as Article[];
             if (categoryContent.length > 0) {
                 height += 60; // category title and margins
-                height += 320; // featured article height and margins
 
-                const remaining = categoryContent.length - 1;
-                if (remaining > 0) {
-                    const rows = Math.ceil(remaining / 2);
-                    height += rows * 390; // highly accurate matched height per row
+                const featuredId = featuredArticles ? featuredArticles[categoryName] : undefined;
+                let featuredArticle = categoryContent.find(a => a.id === featuredId);
+                let remainingArticles = categoryContent.filter(a => a.id !== featuredId);
+
+                if (!featuredArticle) {
+                    featuredArticle = categoryContent[0];
+                    remainingArticles = categoryContent.slice(1);
+                }
+
+                if (featuredArticle) {
+                    const titleLines = Math.ceil((featuredArticle.title?.length || 80) / 40);
+                    const sumLines = Math.ceil((featuredArticle.summary?.length || 300) / 80);
+                    const textHeight = (titleLines * 28) + 10 + (sumLines * 18) + 40;
+                    height += Math.max(250, textHeight) + 60; // image height vs text height, plus padding
+                }
+
+                if (remainingArticles && remainingArticles.length > 0) {
+                    for (let i = 0; i < remainingArticles.length; i += 2) {
+                        const calcCardHeight = (a: Article) => {
+                            const tLines = Math.ceil((a.title?.length || 60) / 25);
+                            const sLines = Math.ceil((a.summary?.length || 200) / 50);
+                            return 180 + 15 + (tLines * 22) + 10 + (sLines * 17) + 15 + 15 + 50; 
+                        };
+                        const h1 = calcCardHeight(remainingArticles[i]);
+                        const h2 = (i + 1 < remainingArticles.length) ? calcCardHeight(remainingArticles[i + 1]) : 0;
+                        height += Math.max(h1, h2);
+                    }
                 }
                 height += 50; // margin bottom for the category section
             }
         });
 
-        return Math.max(height, 792); // return at least standard letter height
+        height += 20; // safety bounding margin; the background color masks this seamlessly
+        return Math.max(height, 792); 
     };
 
     const pageHeight = calculateDynamicHeight();
 
     return (
         <Document>
-            <Page size={[612, pageHeight]} style={{ ...styles.page, backgroundColor: '#0a3264' }}>
+            <Page size={[612, pageHeight]} style={styles.page}>
                 <View style={{ backgroundColor: '#ffffff' }}>
                     {/* Hero Section */}
                     <View style={styles.heroContainer}>
@@ -347,6 +386,22 @@ const NewsletterDocument: React.FC<NewsletterDocumentProps> = ({
                             <Text style={styles.titleWhite}>CIEC</Text>
                             <Text style={styles.titleBlue}>AL DÍA</Text>
                             <Text style={styles.dateLine}>{dateRange}</Text>
+                            <View style={styles.socialContainer}>
+                                <View style={styles.socialIconBlock}>
+                                    <Link src="https://www.instagram.com/caraboboindustrial?igsh=MTc4emZhYXFlbW80Ng%3D%3D&utm_source=qr">
+                                        <Svg viewBox="0 0 24 24" style={styles.socialIcon}>
+                                            <Path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm3.98-10.98a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z" fill="#ffffff" />
+                                        </Svg>
+                                    </Link>
+                                </View>
+                                <View style={styles.socialIconBlock}>
+                                    <Link src="https://www.facebook.com/share/1MTSfabXpE/?mibextid=wwXIfr">
+                                        <Svg viewBox="0 0 24 24" style={styles.socialIcon}>
+                                            <Path d="M22.675 0h-21.35C.597 0 0 .597 0 1.325v21.351C0 23.403.597 24 1.325 24H12.82v-9.294H9.692v-3.622h3.128V8.413c0-3.1 1.893-4.788 4.659-4.788 1.325 0 2.463.099 2.795.143v3.24l-1.918.001c-1.504 0-1.795.715-1.795 1.763v2.313h3.587l-.467 3.622h-3.12V24h6.116c.73 0 1.323-.597 1.323-1.325V1.325C24 .597 23.403 0 22.675 0z" fill="#ffffff" />
+                                        </Svg>
+                                    </Link>
+                                </View>
+                            </View>
                         </View>
                         <View style={styles.heroRight}>
                             <Image src={HEROCOVER_URL} style={styles.heroRightImage} />
@@ -450,13 +505,12 @@ const NewsletterDocument: React.FC<NewsletterDocumentProps> = ({
                 <View style={styles.footerContainer}>
                     <View style={styles.disclaimerBox}>
                         <Text style={styles.disclaimerText}>
-                            El diferencial cambiario y los indicadores presentados son referenciales al momento de cierre de esta edición.
-                            Se sugiere a la industria consultar fuentes oficiales antes de la toma de decisiones críticas.
+                            El diferencial cambiario y los indicadores presentados son referenciales al momento de cierre de esta edición. Se sugiere a la industria consultar fuentes oficiales antes de la toma de decisiones críticas.
+                        </Text>
+                        <Text style={styles.footerText}>
+                            Boletín generado automáticamente por CIEC App. © {new Date().getFullYear()} Cámara de Industriales del Estado Carabobo.
                         </Text>
                     </View>
-                    <Text style={styles.footerText}>
-                        Boletín generado automáticamente por CIEC App. © {new Date().getFullYear()} Cámara de Industriales del Estado Carabobo.
-                    </Text>
                 </View>
             </Page>
         </Document>

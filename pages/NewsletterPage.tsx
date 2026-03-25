@@ -150,7 +150,12 @@ const NewsletterPage: React.FC = () => {
         try {
             const { startObj, endObj } = getDateRange();
             const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric' };
-            const dateRangeStr = `${startObj.toLocaleDateString('es-VE', options)} - ${endObj.toLocaleDateString('es-VE', options)}`;
+            const isSingleDay = filterType === 'day' || (startObj.getDate() === endObj.getDate() && startObj.getMonth() === endObj.getMonth() && startObj.getFullYear() === endObj.getFullYear());
+            const startStr = startObj.toLocaleDateString('es-VE', options);
+            const dateRangeStr = isSingleDay 
+                ? `Boletín generado en el día ${startStr}` 
+                : `${startStr} - ${endObj.toLocaleDateString('es-VE', options)}`;
+            const fileDateRangeStr = isSingleDay ? startStr : `${startStr} - ${endObj.toLocaleDateString('es-VE', options)}`;
 
             const doc = <NewsletterDocument
                 articles={visibleArticles}
@@ -164,7 +169,7 @@ const NewsletterPage: React.FC = () => {
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `boletin_ciec_${dateRangeStr.replace(/ /g, '_').replace(/\//g, '-')}.pdf`;
+            a.download = `boletin_ciec_${fileDateRangeStr.replace(/ /g, '_').replace(/\//g, '-')}.pdf`;
             a.click();
             URL.revokeObjectURL(url);
         } catch (err) {
@@ -177,7 +182,10 @@ const NewsletterPage: React.FC = () => {
 
     const { startObj, endObj } = getDateRange();
     const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric' };
-    const dateRangeStrUI = `${startObj.toLocaleDateString('es-VE', options)} - ${endObj.toLocaleDateString('es-VE', options)}`;
+    const isSingleDay = filterType === 'day' || (startObj.getDate() === endObj.getDate() && startObj.getMonth() === endObj.getMonth() && startObj.getFullYear() === endObj.getFullYear());
+    const dateRangeStrUI = isSingleDay 
+        ? `Boletín generado en el día ${startObj.toLocaleDateString('es-VE', options)}` 
+        : `${startObj.toLocaleDateString('es-VE', options)} - ${endObj.toLocaleDateString('es-VE', options)}`;
 
     return (
         <div className="w-full relative">
